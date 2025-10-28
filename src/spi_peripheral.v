@@ -52,41 +52,41 @@ module spi_peripheral (
   always@(posedge clk or negedge rst_n) begin
     //reset priority
     if(!rst_n) begin
-      pwm_duty_cycle <= 8'b0;
       transaction_ready <= 0;
       bit_count <= 0;
       shift_reg <= 0;
 
     //Does transaction start? (TRANSACTION = LOW)
-    end else if (nCS_sync2 == 1'b0) begin 
-      if(Rising_Sclk_sync)begin //sample COPI on every rising Sclk
-        shift_reg <= {shift_reg[14:0], COPI_sync2}; //COPI shifts reg left.
-        bit_count <= bit_count + 1; //count bits
-      end 
-    
-    //CASE TRANSACTION = HIGH (STOP TRANSACTION)
     end else begin
-      //TRANSACTION JUST STOPS
-      if (Rising_nCS_sync)begin
-        //validate the transaction: 1. 8 bit count, first bit = 1 (write), valid addr = 0 --> 0x04
-        if(bit_count == 16 && //16 bits
-          shift_reg[15] ==1 && //write mode
-          shift_reg[14:8] <= 7'h04) begin //valid address
+      if (nCS_sync2 == 1'b0) begin 
+        if(Rising_Sclk_sync)begin //sample COPI on every rising Sclk
+          shift_reg <= {shift_reg[14:0], COPI_sync2}; //COPI shifts reg left.
+          bit_count <= bit_count + 1; //count bits
+        end 
+      
+      //CASE TRANSACTION = HIGH (STOP TRANSACTION)
+      end else begin
+        //TRANSACTION JUST STOPS
+        if (Rising_nCS_sync)begin
+          //validate the transaction: 1. 8 bit count, first bit = 1 (write), valid addr = 0 --> 0x04
+          if(bit_count == 16 && //16 bits
+            shift_reg[15] ==1 && //write mode
+            shift_reg[14:8] <= 7'h04) begin //valid address
 
-          transaction_ready <= 1'b1;// transaction ready to be used!
+            transaction_ready <= 1'b1;// transaction ready to be used!
 
-        end else begin
-          transaction_ready <= 1'b0; //not a valid transaction.
+          end else begin
+            transaction_ready <= 1'b0; //not a valid transaction.
+          end
+          //reset counters
+          bit_count <= 0;
+          shift_reg <= 0;
+        end else if (!transaction_complete) begin
+        //reset flag
+          transaction_ready <= 0;
         end
-        //reset counters
-        bit_count <= 0;
-        shift_reg <= 0;
-      end else if (transaction_complete) begin
-      //reset flag
-        transaction_ready <= 0;
       end
     end
-    
 
   end
 
@@ -99,7 +99,6 @@ module spi_peripheral (
       en_reg_pwm_15_8 <= 8'b0;
       pwm_duty_cycle <= 8'b0;
       transaction_complete <= 0;
-
     //START DOING TRANSACTION LOGIC
 
     //if transaction is ready and not completed
