@@ -19,10 +19,10 @@ module spi_peripheral (
     output reg [7:0]  pwm_duty_cycle
 );
 
-  //SYNCHRONIZE Sclk, COPI, Cs --> Sclk _ync2, COPI_sync2, nCs_sync2;
+  //SYNCHRONIZE Sclk, COPI, Cs --> Sclk _ync2, COPI_sync2, nCS_sync2;
   reg Sclk_sync1, Sclk_sync2;
   reg COPI_sync1, COPI_sync2;
-  reg nCs_sync1, nCs_sync2, nCs_prev; 
+  reg nCS_sync1, nCS_sync2, nCS_prev; 
 
   reg Sclk_sync_prev;
   always@(posedge clk)begin
@@ -33,14 +33,14 @@ module spi_peripheral (
     COPI_sync1 <= COPI;
     COPI_sync2 <= COPI_sync1;
 
-    nCs_sync1 <= nCs;
-    nCs_sync2 <= nCs_sync1;
-    nCs_prev <= nCs_sync2; //stores previous nCs
+    nCS_sync1 <= nCS;
+    nCS_sync2 <= nCS_sync1;
+    nCS_prev <= nCS_sync2; //stores previous nCS
 
   end
 
   wire Rising_Sclk_sync = (Sclk_sync2==1'b1)&&(Sclk_sync_prev == 1'b0); //rising edge of Sclk
-  wire Rising_nCs_sync = (nCs_sync2 == 1'b1)&&(nCs_prev == 1'b0); //rising edge of nCs
+  wire Rising_nCS_sync = (nCS_sync2 == 1'b1)&&(nCS_prev == 1'b0); //rising edge of nCS
 
   reg [4:0] bit_count;
   reg [15:0] shift_reg;
@@ -63,7 +63,7 @@ module spi_peripheral (
       shift_reg <= 0;
 
     //Does transaction start? (TRANSACTION = LOW)
-    end else if (nCs_sync2 == 1'b0) begin 
+    end else if (nCS_sync2 == 1'b0) begin 
       if(Rising_Sclk_sync)begin //sample COPI on every rising Sclk
         shift_reg <= {shift_reg[14:0], COPI_sync2}; //COPI shifts reg left.
         bit_count <= bit_count + 1; //count bits
@@ -72,7 +72,7 @@ module spi_peripheral (
     //CASE TRANSACTION = HIGH (STOP TRANSACTION)
     end else begin
       //TRANSACTION JUST STOPS
-      if (Rising_nCs_sync)begin
+      if (Rising_nCS_sync)begin
         //validate the transaction: 1. 8 bit count, first bit = 1 (write), valid addr = 0 --> 0x04
         if(bit_count == 16 && //16 bits
           shift_reg[15] ==1 && //write mode
