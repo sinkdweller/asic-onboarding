@@ -58,7 +58,6 @@ module spi_peripheral (
       en_reg_pwm_15_8 <= 8'b0;
       pwm_duty_cycle <= 8'b0;
       transaction_ready <= 0;
-      transaction_complete <= 0;
       bit_count <= 0;
       shift_reg <= 0;
 
@@ -76,7 +75,7 @@ module spi_peripheral (
         //validate the transaction: 1. 8 bit count, first bit = 1 (write), valid addr = 0 --> 0x04
         if(bit_count == 16 && //16 bits
           shift_reg[15] ==1 && //write mode
-          shift_reg[14:8] >= 7'h00 && shift_reg[14:8] <= 7'h04) begin //valid address
+          shift_reg[14:8] <= 7'h04) begin //valid address
 
           transaction_ready <= 1'b1;// transaction ready to be used!
 
@@ -116,6 +115,7 @@ module spi_peripheral (
         7'h02: en_reg_pwm_7_0 <= shift_reg[7:0]; //enable PWM for uo_out[7:0]
         7'h03: en_reg_pwm_15_8 <= shift_reg[7:0]; //enable PWM for uio_out[7:0]
         7'h04: pwm_duty_cycle <= shift_reg[7:0];
+        default: ;
       endcase
       
       transaction_complete <= 1'b1;
