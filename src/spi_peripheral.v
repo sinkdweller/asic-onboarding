@@ -90,6 +90,7 @@ module spi_peripheral (
       //reset flag
         transaction_ready <= 0;
       end
+    end
     
 
   end
