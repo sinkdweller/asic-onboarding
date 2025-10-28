@@ -52,10 +52,6 @@ module spi_peripheral (
   always@(posedge clk or negedge rst_n) begin
     //reset priority
     if(!rst_n) begin
-      en_reg_out_7_0 <= 8'b0;
-      en_reg_out_15_8 <= 8'b0;
-      en_reg_pwm_7_0 <= 8'b0;
-      en_reg_pwm_15_8 <= 8'b0;
       pwm_duty_cycle <= 8'b0;
       transaction_ready <= 0;
       bit_count <= 0;
