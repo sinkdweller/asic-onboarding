@@ -16,6 +16,11 @@ module tt_um_uwasic_onboarding_evelynn_lu (
     input  wire       rst_n     // reset_n - low to reset
 );
   assign uio_oe = 8'hFF; // Set all IOs to output
+  wire [7:0] en_reg_out_7_0;
+  wire [7:0] en_reg_out_15_8;
+  wire [7:0] en_reg_pwm_7_0;
+  wire [7:0] en_reg_pwm_15_8;
+  wire [7:0] pwm_duty_cycle;
   
 spi_peripheral spi_inst (
     .clk(clk),
@@ -29,11 +34,7 @@ spi_peripheral spi_inst (
     .en_reg_pwm_15_8(en_reg_pwm_15_8),
     .pwm_duty_cycle(pwm_duty_cycle)
 );
-  wire [7:0] en_reg_out_7_0;
-  wire [7:0] en_reg_out_15_8;
-  wire [7:0] en_reg_pwm_7_0;
-  wire [7:0] en_reg_pwm_15_8;
-  wire [7:0] pwm_duty_cycle;
+
 
   pwm_peripheral pwm_peripheral_inst (
     .clk(clk),
