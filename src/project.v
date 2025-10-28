@@ -125,10 +125,9 @@ module tt_um_uwasic_onboarding_evelynn_lu (
       case(shift_reg[14:8])  //address
         7'h00: en_reg_out_7_0 <= shift_reg[7:0]; //enable outputs on uo_out[7:0]
         7'h01: en_reg_out_15_8 <= shift_reg[7:0]; //enable outputs on uio_out[7:0]
-        7'ho2: en_reg_pwm_7_0 <= shift_reg[7:0]; //enable PWM for uo_out[7:0]
+        7'h02: en_reg_pwm_7_0 <= shift_reg[7:0]; //enable PWM for uo_out[7:0]
         7'h03: en_reg_pwm_15_8 <= shift_reg[7:0]; //enable PWM for uio_out[7:0]
         7'h04: pwm_duty_cycle <= shift_reg[7:0];
-
       endcase;
       
       transaction_complete <= 1'b1;
