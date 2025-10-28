@@ -20,9 +20,9 @@ module spi_peripheral (
 );
 
   //SYNCHRONIZE Sclk, COPI, Cs --> Sclk _ync2, COPI_sync2, nCs_sync2;
-  reg Sclk_sync1, Sclk_sync2; //Sclk = ui_in[0]
-  reg COPI_sync1, COPI_sync2; //COPI = ui_in[1]
-  reg nCs_sync1, nCs_sync2, nCs_prev; //Cs = ui_in[2]
+  reg Sclk_sync1, Sclk_sync2;
+  reg COPI_sync1, COPI_sync2;
+  reg nCs_sync1, nCs_sync2, nCs_prev; 
 
   reg Sclk_sync_prev;
   always@(posedge clk)begin
@@ -38,6 +38,7 @@ module spi_peripheral (
     nCs_prev <= nCs_sync2; //stores previous nCs
 
   end
+
   wire Rising_Sclk_sync = (Sclk_sync2==1'b1)&&(Sclk_sync_prev == 1'b0); //rising edge of Sclk
   wire Rising_nCs_sync = (nCs_sync2 == 1'b1)&&(nCs_prev == 1'b0); //rising edge of nCs
 
@@ -114,7 +115,7 @@ module spi_peripheral (
         7'h02: en_reg_pwm_7_0 <= shift_reg[7:0]; //enable PWM for uo_out[7:0]
         7'h03: en_reg_pwm_15_8 <= shift_reg[7:0]; //enable PWM for uio_out[7:0]
         7'h04: pwm_duty_cycle <= shift_reg[7:0];
-      endcase;
+      endcase
       
       transaction_complete <= 1'b1;
     //what if no transaction ready and just finish transaction?
