@@ -185,10 +185,11 @@ async def test_pwm_freq(dut):
 
     await RisingEdge(dut.uo_out[0])
     t_2 = get_sim_time("ns")
-    frequency = 1/(t_2 - t_1)
+    frequency = 1e9/(t_2 - t_1)
     dut._log.info("pwm frequency: ")
+    tolerance = 60
 
-    dut._log.info(frequency)
+    assert abs(frequency - 3000 )<tolerance, "received frequency was ${frequency}"
 
 
 
