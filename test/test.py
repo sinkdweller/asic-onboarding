@@ -157,30 +157,30 @@ async def test_pwm_freq(dut):
     cocotb.start_soon(Clock(dut.clk, 100, units='ns').start())
 
     #resetting
+    dut._log.info("Reset")
     dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 5)
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 5)
-
     #start test
     dut._log.info("Test PWM frequency behavior")
 
      
     #Enable outputs on all uo_out[7:0]
-    dut._log.info("Write transaction, address 0x00, data 0xFF")
     await send_spi_transaction(dut, 1, 0x00, 0xFF)
-    await ClockCycles(dut.clk, 100)
-    #Enable PWM for all uo_out[7:0]
-    dut._log.info("Write transaction, address 0x02, data 0xFF")
-    await send_spi_transaction(dut, 1, 0x00, 0xFF)
-    await ClockCycles(dut.clk, 100)
-    #Set PWM duty Cycle 
-    dut._log.info("Write transaction, 50 duty cycle")
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x01, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x02, 0xFF)
+    await ClockCycles(dut.clk, 30000)
     await send_spi_transaction(dut, 1, 0x04, 0x80)
-    while dut.pwm0.value.integer == 1:
-        await ClockCycles(dut.clk, 1)
-
+    
+    await ClockCycles(dut.clk, 30000)
     
     t_1 = get_sim_time("ns")
 
