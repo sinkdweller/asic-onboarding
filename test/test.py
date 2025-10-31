@@ -179,11 +179,11 @@ async def test_pwm_freq(dut):
     dut._log.info("Write transaction, 50 duty cycle")
     await send_spi_transaction(dut, 1, 0x04, 0x80)
     
-    await RisingEdge(dut.uo_out[0])
+    await RisingEdge(dut.pwm0)
     
     t_1 = get_sim_time("ns")
 
-    await RisingEdge(dut.uo_out[0])
+    await RisingEdge(dut.pwm0)
     t_2 = get_sim_time("ns")
     frequency = 1e9/(t_2 - t_1)
     tolerance = 60
