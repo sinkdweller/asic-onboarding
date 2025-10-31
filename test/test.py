@@ -7,6 +7,7 @@ from cocotb.triggers import RisingEdge
 from cocotb.triggers import ClockCycles
 from cocotb.types import Logic
 from cocotb.types import LogicArray
+from cocotb.utils import get_sim_time
 
 async def await_half_sclk(dut):
     """Wait for the SCLK signal to go high or low."""
@@ -152,8 +153,46 @@ async def test_spi(dut):
 @cocotb.test()
 async def test_pwm_freq(dut):
     # Write your test here
-    dut._log.info("PWM Frequency test completed successfully")
+    dut._log.info("PWM Frequency test starts here")
+    cocotb.start_soon(Clock(dut.clk, 100, units='ns').start())
 
+    #resetting
+    dut.ena.value = 1
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+
+    #start test
+    dut._log.info("Test PWM frequency behavior")
+
+     
+    #Enable outputs on all uo_out[7:0]
+    dut._log.info("Write transaction, address 0x00, data 0xFF")
+    await send_spi_transaction(dut, 1, 0x00, 0xFF)
+    await ClockCycles(dut.clk, 100)
+    #Enable PWM for all uo_out[7:0]
+    dut._log.info("Write transaction, address 0x02, data 0xFF")
+    await send_spi_transaction(dut, 1, 0x00, 0xFF)
+    await ClockCycles(dut.clk, 100)
+    #Set PWM duty Cycle 
+    dut._log.info("Write transaction, 50 duty cycle")
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+    
+    await RisingEdge(dut.uo_out[0])
+    
+    t_1 = get_sim_time("ns")
+
+    await RisingEdge(dut.uo_out[0])
+    t_2 = get_sim_time("ns")
+    frequency = 1/(t_2 - t_1)
+
+
+
+
+    
+
+    dut._log.info("PWM Frequency test completed successfully")
 
 @cocotb.test()
 async def test_pwm_duty(dut):

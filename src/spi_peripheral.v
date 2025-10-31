@@ -1,9 +1,7 @@
-
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2025 Evelynn Lu
  * SPDX-License-Identifier: Apache-2.0
  */
-
 `default_nettype none
 
 module spi_peripheral (
