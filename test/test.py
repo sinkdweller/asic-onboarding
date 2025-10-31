@@ -181,15 +181,16 @@ async def test_pwm_freq(dut):
     await send_spi_transaction(dut, 1, 0x04, 0x80)
     
     await ClockCycles(dut.clk, 30000)
-    
+    await RisingEdge(dut, dut.uo_out[0])
+
     t_1 = get_sim_time("ns")
 
-    await RisingEdge(dut.pwm0)
+    await RisingEdge(dut, dut.uo_out[0])
     t_2 = get_sim_time("ns")
     frequency = 1e9/(t_2 - t_1)
     tolerance = 60
 
-    assert abs(frequency - 3000 )<tolerance, "received frequency was ${frequency}"
+    assert abs(frequency - 3000 )<tolerance, "received frequency was {frequency}"
 
 
 
