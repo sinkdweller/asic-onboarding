@@ -3,10 +3,11 @@
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
+from cocotb.triggers import RisingEdge, FallingEdge, Timer
 from cocotb.triggers import ClockCycles
 from cocotb.types import Logic
 from cocotb.types import LogicArray
+from cocotb.utils import get_sim_time
 
 async def await_half_sclk(dut):
     """Wait for the SCLK signal to go high or low."""
@@ -152,10 +153,105 @@ async def test_spi(dut):
 @cocotb.test()
 async def test_pwm_freq(dut):
     # Write your test here
+    dut._log.info("PWM Frequency test starts here")
+    cocotb.start_soon(Clock(dut.clk, 100, units='ns').start())
+
+    #resetting
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    #start test
+    dut._log.info("Test PWM frequency behavior")
+
+     
+    #Enable outputs on all uo_out[7:0]
+    await send_spi_transaction(dut, 1, 0x00, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x01, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x02, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+    
+    await ClockCycles(dut.clk, 30000)
+    await RisingEdge(dut.pwm0)
+
+    t_1 = get_sim_time("ns")
+
+    await RisingEdge(dut.pwm0)
+    t_2 = get_sim_time("ns")
+    frequency = 1e9/(t_2 - t_1)
+    tolerance = 60
+
+    assert abs(frequency - 3000 )<tolerance, "received frequency was {frequency}"
+
     dut._log.info("PWM Frequency test completed successfully")
 
-
 @cocotb.test()
+#check that output matches value in register
 async def test_pwm_duty(dut):
+    cocotb.start_soon(Clock(dut.clk, 100, units='ns').start())
+
+    #resetting
+    dut._log.info("Reset")
+    dut.ena.value = 1
+    ncs = 1
+    bit = 0
+    sclk = 0
+    dut.ui_in.value = ui_in_logicarray(ncs, bit, sclk)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
     # Write your test here
+    #Test for 50%
+    await send_spi_transaction(dut, 1, 0x00, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x01, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x02, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    await send_spi_transaction(dut, 1, 0x04, 0x80)
+
+    await RisingEdge(dut.pwm0)
+    t_rising1 = get_sim_time("ns")
+
+    await FallingEdge(dut.pwm0)
+    t_falling1 = get_sim_time("ns")
+
+    await(RisingEdge)(dut.pwm0)
+    t_risingP = get_sim_time("ns")
+    period = t_risingP - t_rising1
+
+    high_time1 = t_falling1 - t_rising1
+    duty1 = high_time1/period
+    assert abs(duty1 - 0.5 )<0.05
+
+    #Test for 100%
+    await send_spi_transaction(dut, 1, 0x04, 0xFF)
+    await ClockCycles(dut.clk, 30000)
+    
+    await Timer(period*2, units = "ns")
+    assert dut.pwm0.value ==1, "PWM expected 1"
+     #Test for 0%
+    await send_spi_transaction(dut, 1, 0x04, 0x00)
+    await ClockCycles(dut.clk, 30000)
+    
+    await Timer(period*2, units = "ns")
+    assert dut.pwm0.value ==0, "PWM expected 0"
+
+
+
+    
+
+
+        
+
     dut._log.info("PWM Duty Cycle test completed successfully")
