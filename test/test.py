@@ -178,7 +178,7 @@ async def test_pwm_freq(dut):
     #Set PWM duty Cycle 
     dut._log.info("Write transaction, 50 duty cycle")
     await send_spi_transaction(dut, 1, 0x04, 0x80)
-    
+    await ClockCycles(dut.clk, 30000)
     await RisingEdge(dut.pwm0)
     
     t_1 = get_sim_time("ns")
